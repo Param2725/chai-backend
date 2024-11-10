@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs;'
+import fs from 'fs'
 
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -7,7 +7,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET 
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath, _callback) => {
     try {
         if(!localFilePath) return null
         //upload file in cloudinary
@@ -15,9 +15,13 @@ const uploadOnCloudinary = async (localFilePath) => {
             resource_type: "auto"
         })
         //file has been uploaded
-        console.log("file is uploaded on cloudinary", response.url);
+        fs.unlinkSync(localFilePath)
+        _callback(null);
+        return response;
     } catch (error) {
+        console.log("Catch block error:", error);
         fs.unlinkSync(localFilePath) //remove local saved temp file
+        _callback(error);
         return null;
     }
 }
