@@ -1,5 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs'
+import { ApiError } from './ApiError.js'
+import { ApiResponce } from './ApiResponce.js';
 
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -26,4 +28,20 @@ const uploadOnCloudinary = async (localFilePath, _callback) => {
     }
 }
 
-export { uploadOnCloudinary }
+const deleteFromCloudinary = async(localFilePath) => {
+    let publicId = localFilePath.replace(/^.*\/upload\/(?:v\d+\/)?/, '');
+    publicId = publicId.replace(/\.[^/.]+$/, '');
+
+    const imagetobeDeleted = await cloudinary.uploader.destroy(publicId, (error , result) => {
+        if(error){
+            throw new ApiError(
+                500,"existing file can not be deleted from cloudinary"
+            )
+        }
+    })
+}
+
+export { 
+    uploadOnCloudinary,
+    deleteFromCloudinary 
+}

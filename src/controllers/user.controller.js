@@ -1,9 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary , deleteFromCloudinary } from "../utils/cloudinary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
@@ -77,7 +78,7 @@ const registerUser = asyncHandler( async (req , res) => {
     const coverImage = await uploadOnCloudinary(coverImageLocalPath, (error) => {
         if (error) {
             throw new ApiError(
-                400,"AVATAR file is required"
+                400,"coverImage file is required"
             );
         }
     });
@@ -320,21 +321,16 @@ const updateAccountDetails = asyncHandler( async(req , res) => {
 })
 
 const updateUserAvatar = asyncHandler( async(req , res) => {
-    const avatarLocalPath = req.file?.path
+    
+    const avatarLocalPath = req.file?.path;
 
-    if(!avatarLocalPath){
-        throw new ApiError(
-            400,"avatar file is missing"
-        )
-    }
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-
-    if(!avatar.url){
-        throw new ApiError(
-            400,"error while uploading avatar"
-        )
-    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
+        if(error){
+            throw new ApiError(
+                400,"error while uploading avatar"
+            )
+        }
+    })
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
@@ -345,6 +341,8 @@ const updateUserAvatar = asyncHandler( async(req , res) => {
         },
         {new :true}
     ).select("-password")
+
+    //const imageTobeDeleted = deleteFromCloudinary(req.user.avatar)
 
     return res
     .status(200)
@@ -366,11 +364,11 @@ const updateUserCoverImage = asyncHandler( async(req , res) => {
         )
     }
 
-    const coverImage = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!coverImage.url){
         throw new ApiError(
-            400,"error while uploading avatar"
+            400,"error while uploading coverImage"
         )
     }
 
