@@ -23,6 +23,7 @@ const uploadOnCloudinary = async (localFilePath, _callback) => {
     } catch (error) {
         console.log("Catch block error:", error);
         fs.unlinkSync(localFilePath) //remove local saved temp file
+ //remove local saved temp file
         _callback(error);
         return null;
     }

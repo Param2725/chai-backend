@@ -322,7 +322,8 @@ const updateAccountDetails = asyncHandler( async(req , res) => {
 
 const updateUserAvatar = asyncHandler( async(req , res) => {
     
-    const avatarLocalPath = req.file?.path;
+    const avatarOriginalFilePath = null
+    const avatarLocalPath = req.files?.avatar[0]?.path;
 
     const avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
         if(error){
@@ -332,27 +333,32 @@ const updateUserAvatar = asyncHandler( async(req , res) => {
         }
     })
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set : {
-                avatar: avatar.url
-            }
-        },
-        {new :true}
-    ).select("-password")
-
+    const updateDB = async( id = req.body.id) => {
+        try {
+            const user = await User.findByIdAndUpdate(
+                id,
+                {
+                    avatar: avatar.url
+                },
+                { new : true }
+            ).select("-password").exec();
+    
+            res
+            .json(
+                new ApiResponce(
+                    200,
+                    user,
+                    "avatar updated Successfully"
+                )
+            ).send();
+        } catch (error) {
+            console.log(error);
+            return;
+        }
+    }
+    await updateDB();
+    
     //const imageTobeDeleted = deleteFromCloudinary(req.user.avatar)
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponce(
-            200,
-            user,
-            "avatar updated Successfully"
-        )
-    )
 })
 
 const updateUserCoverImage = asyncHandler( async(req , res) => {

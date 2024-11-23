@@ -26,6 +26,17 @@ router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-Token").post(refreshAccessToken)
-router.route("/updateavatar").post(updateUserAvatar)
+router.route("/updateavatar").post(
+    upload.fields([
+        {
+            id: "id",
+            maxCount: 1 
+        },
+        {
+            name: "avatar",
+            maxCount: 1
+        }
+    ]),updateUserAvatar
+)
 
 export default router
