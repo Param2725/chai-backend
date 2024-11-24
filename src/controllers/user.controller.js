@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary , deleteFromCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
 import multer from "multer";
@@ -55,7 +55,7 @@ const registerUser = asyncHandler( async (req , res) => {
         )
     }
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
+    let avatarLocalPath = req.files?.avatar[0]?.path;
 
     let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
@@ -322,8 +322,15 @@ const updateAccountDetails = asyncHandler( async(req , res) => {
 
 const updateUserAvatar = asyncHandler( async(req , res) => {
     
-    const avatarOriginalFilePath = null
     const avatarLocalPath = req.files?.avatar[0]?.path;
+
+    const id = req.body.id
+    console.log(id)
+
+    // cloudinary.uploader.destroy(
+        
+    // )
+    // .then(result => console.log(result));
 
     const avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
         if(error){
@@ -358,7 +365,6 @@ const updateUserAvatar = asyncHandler( async(req , res) => {
     }
     await updateDB();
     
-    //const imageTobeDeleted = deleteFromCloudinary(req.user.avatar)
 })
 
 const updateUserCoverImage = asyncHandler( async(req , res) => {
