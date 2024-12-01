@@ -1,10 +1,12 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary , deleteFromCloudinary } from "../utils/cloudinary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
 import multer from "multer";
+
+let avatar = null
 
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
@@ -68,13 +70,14 @@ const registerUser = asyncHandler( async (req , res) => {
         );
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
+    avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
         if (error) {
             throw new ApiError(
                 400,"AVATAR file is required"
             );
         }
     });
+
     const coverImage = await uploadOnCloudinary(coverImageLocalPath, (error) => {
         if (error) {
             throw new ApiError(
@@ -322,23 +325,23 @@ const updateAccountDetails = asyncHandler( async(req , res) => {
 
 const updateUserAvatar = asyncHandler( async(req , res) => {
     
+    const id = req.body.id
+
+    if (avatar) {
+        const publicId = avatar.public_id // Extract public ID from URL
+        await deleteFromCloudinary(publicId); // Delete the old avatar
+    }
+
     const avatarLocalPath = req.files?.avatar[0]?.path;
 
-    const id = req.body.id
-    console.log(id)
-
-    // cloudinary.uploader.destroy(
-        
-    // )
-    // .then(result => console.log(result));
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
+    avatar = await uploadOnCloudinary(avatarLocalPath, (error) => {
         if(error){
             throw new ApiError(
                 400,"error while uploading avatar"
             )
         }
     })
+    avatar = avatar
 
     const updateDB = async( id = req.body.id) => {
         try {
@@ -349,7 +352,7 @@ const updateUserAvatar = asyncHandler( async(req , res) => {
                 },
                 { new : true }
             ).select("-password").exec();
-    
+
             res
             .json(
                 new ApiResponce(

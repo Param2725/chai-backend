@@ -19,17 +19,23 @@ const uploadOnCloudinary = async (localFilePath, _callback) => {
         //file has been uploaded
         fs.unlinkSync(localFilePath)
         _callback(null);
-        console.log(cloudinaryResponse)
         return cloudinaryResponse
     } catch (error) {
         console.log("Catch block error:", error);
         fs.unlinkSync(localFilePath) //remove local saved temp file
         _callback(error);
         return null;
-    }
+    }      
+}
 
+const deleteFromCloudinary = async(filePath) => {
+    if(!filePath) return null
+    //delete from cloudinary
+    const imageTobeDeleted = cloudinary.uploader.destroy(filePath)
+    return imageTobeDeleted
 }
 
 export { 
     uploadOnCloudinary,
+    deleteFromCloudinary
 }
